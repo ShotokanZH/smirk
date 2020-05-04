@@ -7,7 +7,7 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <errno.h>
-#define DEBUG
+// #define DEBUG
 
 #define LIBC "libc.so.6"
 #define MAGIC_PREFIX ".smirk"
