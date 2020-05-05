@@ -75,7 +75,7 @@ FILE *fopen(const char *pathname, const char *mode)
 
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
-        if (!fake_netstat(hooked_fopen, real_pathname, mode, newfile)){
+        if (!fake_netstat(hooked_fopen, real_pathname, newfile)){
             return NULL;
         }
         return hooked_fopen(newfile, mode);
@@ -103,7 +103,7 @@ FILE *fopen64(const char *pathname, const char *mode)
 
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
-        if (!fake_netstat(hooked_fopen64, real_pathname, mode, newfile)){
+        if (!fake_netstat(hooked_fopen64, real_pathname, newfile)){
             return NULL;
         }
 	    return hooked_fopen64(newfile, mode);
