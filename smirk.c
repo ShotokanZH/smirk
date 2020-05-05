@@ -156,3 +156,15 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
 
     return hooked_ioctl(fd, request, argp);
 }
+
+int open(const char *pathname, int flags, unsigned long *argp){
+    #ifdef DEBUG
+    printf("[-] hooking ioctl\n");
+    #endif
+
+    if(!hooked_open){
+		hooked_open = load_libc("open");
+	}
+    
+    return hooked_open(pathname, flags, argp);
+}

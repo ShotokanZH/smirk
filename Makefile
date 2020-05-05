@@ -1,2 +1,2 @@
 all:
-	gcc -shared -o smirk.so -fPIC -ldl smirk.c 
+	gcc -shared -o smirk.so -fPIC smirk.c -ldl

