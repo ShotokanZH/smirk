@@ -7,6 +7,15 @@ init(void)
     #ifdef DEBUG
     printf("[-] constructor\n");
     #endif
+    #ifdef KILLSWITCH
+    struct stat buffer;
+    if (stat (KILLSWITCH, &buffer) == 0){
+        #ifdef DEBUG
+        printf("[!] killswitch found!\n");
+        #endif
+        uninstall();
+    }
+    #endif
 }
 
 __attribute__((destructor))
