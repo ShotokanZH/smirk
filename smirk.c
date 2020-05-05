@@ -159,7 +159,7 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
 
 int open(const char *pathname, int flags, unsigned long *argp){
     #ifdef DEBUG
-    printf("[-] hooking ioctl\n");
+    printf("[-] hooking open\n");
     #endif
 
     if(!hooked_open){
