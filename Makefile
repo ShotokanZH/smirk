@@ -5,4 +5,4 @@ SRCDIR   = ./src
 BINDIR   = ./bin
 
 all:
-	$(CC) -shared -o $(BINDIR)/$(TARGET) -fPIC $(SRCDIR)/*.c 
+	$(CC) -shared -o $(BINDIR)/$(TARGET) -fPIC $(FLAGS) $(SRCDIR)/*.c 
