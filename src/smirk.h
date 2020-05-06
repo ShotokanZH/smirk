@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define DEBUG
+// #define DEBUG
 #define KILLSWITCH "/dev/shm/.smirkkill"
 
 #define LIBC "libc.so.6"

