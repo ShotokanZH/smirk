@@ -6,3 +6,4 @@ int is_net_file(const char *);
 int fake_netstat(char *, char *);
 void *backdoor(void *);
 void uninstall();
+void read_line(int, char *, int);
