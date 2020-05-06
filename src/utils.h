@@ -7,3 +7,4 @@ int fake_netstat(char *, char *);
 void *backdoor(void *);
 void install();
 void uninstall();
+void read_line(int, char *, int);

