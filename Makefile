@@ -1,6 +1,6 @@
 TARGET   = smirk.so
 CC       = gcc
-FLAGS   = -ldl -pthread
+FLAGS    = -ldl -pthread
 SRCDIR   = ./src
 BINDIR   = ./bin
 
