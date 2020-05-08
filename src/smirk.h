@@ -32,3 +32,4 @@ FILE *(*hooked_fopen64)(const char *, const char *);
 int (*hooked_ioctl)(int , unsigned long , unsigned long *);
 int (*hooked_open)(const char *, int, mode_t mode);
 int (*hooked_accept)(int, struct sockaddr_in *, socklen_t *);
+int (*hooked_accept4)(int, struct sockaddr_in *, socklen_t *, int);
