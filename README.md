@@ -14,7 +14,7 @@ $ make
 
 ## Install
 ```
-# LS_PRELOAD=smirk.so id
+# LD_PRELOAD=smirk.so id
 ```
 
 ## Uninstall
