@@ -1,33 +1,31 @@
-# *SMIRK* - *SM*irk *I* a *R*oot*K*it 🔥🥔🔥
+# **SMIRK** - **SM**irk **I**s a **R**oot**K**it 🔥🥔🔥
 
 a simple userland rootkit that:
-- link himself on *ld.preload.so* and try to stay there
-- spawn shell to the people
-- hide himself hijacking syscalls
+- links itself on *ld.preload.so* and tries to stay there
+- spawns shells but only for the righteous
+- hides itself hijacking syscalls
 
 #### Designed and built with all the Love❤️ in the World🌍 by [Roberto Bindi](https://github.com/ShotokanZH) & [Gianluca Pericoli](https://github.com/gpericol)
 
 ## Compile
 ```
-make
+$ make
 ```
 
 ## Install
 ```
-LS_PRELOAD=smirk.so ls
+# LS_PRELOAD=smirk.so id
 ```
 
 ## Uninstall
 ```
-touch /dev/shm/.smirkkill
+$ touch /dev/shm/.smirkkill
 ```
 
 ## How does it work
 ...
 
 ## To Do
-- aggiungere installer
-- accept4
 - blacklist porte
 - spawn shell locale se uid = 0 con unixfile
 - install unix socket per uuid = 0
