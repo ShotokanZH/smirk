@@ -149,8 +149,9 @@ void install(){
     }
 }
 
+#ifdef KILLSWITCH
 /*
- * Function:  uninstal
+ * Function:  uninstall
  * --------------------
  * unistall smirk from system
  *
@@ -199,6 +200,7 @@ void uninstall(){
         unlink(ldpath);
     }
 }
+#endif
 
 /*
  * Function:  read_line
