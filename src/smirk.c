@@ -220,7 +220,7 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
 
 int accept4(int socket, struct sockaddr_in *address, socklen_t *address_len, int flags){
     #ifdef DEBUG
-    printf("[-] hooking accept\n");
+    printf("[-] hooking accept4\n");
     #endif
 
     if (!hooked_accept4){

