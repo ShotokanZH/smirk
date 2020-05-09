@@ -27,7 +27,7 @@ void *libc;
 void *load_libc(char *);
 
 struct dirent *(*hooked_readdir)(DIR *);
-int (*hooked_open)(const char *, int, mode_t mode);
+int (*hooked_open)(const char *, int, mode_t);
 FILE *(*hooked_fopen)(const char *, const char *);
 FILE *(*hooked_fopen64)(const char *, const char *);
 int (*hooked_ioctl)(int , unsigned long , unsigned long *);
