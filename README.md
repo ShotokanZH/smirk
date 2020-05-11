@@ -26,7 +26,6 @@ $ touch /dev/shm/.smirkkill
 ...
 
 ## To Do
-- blacklist porte
 - spawn shell locale se uid = 0 con unixfile
 - install unix socket per uuid = 0
 

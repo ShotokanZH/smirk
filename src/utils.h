@@ -9,4 +9,4 @@ void install();
 #ifdef KILLSWITCH
 void uninstall();
 #endif
-void read_line(int, char *, int);
+int read_line(int, char *, int);
