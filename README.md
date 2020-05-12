@@ -25,10 +25,6 @@ $ touch /dev/shm/.smirkkill
 ## How does it work
 ...
 
-## To Do
-- spawn shell locale se uid = 0 con unixfile
-- install unix socket per uuid = 0
-
 ## References
 [Linux man pages](https://linux.die.net/man/)
 
