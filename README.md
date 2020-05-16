@@ -75,4 +75,4 @@ We explanatory comment everything and you can understand everthing looking at th
 
 ## LICENCE
 
-This program is free software; you can redistribute it and/or modify it under the terms of the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html) as published by the Free Software Foundation; either version 3 of the License, or(at your option) any later version.
+This project is libre, and licenced under the terms of the DO WHAT THE FUCK YOU WANT TO PUBLIC LICENCE, version 3.1, as published by dtf on July 2019. See the LICENCE file or https://ph.dtf.wtf/w/wtfpl/#version-3-1 for more details.
