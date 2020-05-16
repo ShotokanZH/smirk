@@ -8,25 +8,25 @@ a simple userland rootkit that:
 #### Designed and built with all the Love❤️ in the World🌍 by [Roberto Bindi](https://github.com/ShotokanZH) & [Gianluca Pericoli](https://github.com/gpericol)
 
 ## Compile
-```
-$ make
+```bash
+make
 ```
 
 ## Install
-```
-# LD_PRELOAD=smirk.so id
+```bash
+LD_PRELOAD=smirk.so id
 ```
 
 ## Uninstall (if killswitch is activated)
-```
-$ touch /dev/shm/.smirkkill
+```bash
+touch /dev/shm/.smirkkill
 ```
 
 ## How does it work
 [TODO] fast description of hooked API and why
 
 We explanatory comment everything and you can understand everthing looking at the sourcecode
-```
+```text
                     ____
                  _.' :  `._
              .-.'`.  ;   .'`.-.
