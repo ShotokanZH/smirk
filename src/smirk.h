@@ -19,6 +19,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/ptrace.h>
 
 // enable/disable debug 
 // #define DEBUG

