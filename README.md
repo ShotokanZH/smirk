@@ -1,6 +1,6 @@
 # **SMIRK** - **SM**irk **I**s a **R**oot**K**it 🔥🥔🔥
 
-a simple userland rootkit that:
+...A simple userland rootkit that:
 - links itself on *ld.preload.so* and tries to stay there
 - spawns shells but only for the righteous
 - hides itself hijacking syscalls
@@ -9,23 +9,62 @@ a simple userland rootkit that:
 
 ## Compile
 ```bash
-make
+$ make
 ```
 
 ## Install
 ```bash
-LD_PRELOAD=smirk.so id
+# LD_PRELOAD=smirk.so id
 ```
 
 ## Uninstall (if killswitch is activated)
 ```bash
-touch /dev/shm/.smirkkill
+$ touch /dev/shm/.smirkkill
 ```
 
 ## How does it work
-[TODO] fast description of hooked API and why
+The shared library, once installed, will hook the following functions:
+### open
+Used to hide specific files, i.e. files prefixed with a "magix prefix" (default: `.smirk`) or network files.
 
-We explanatory comment everything and you can understand everthing looking at the sourcecode
+Hooked functions for this scope are:
+- `open`
+- `fopen`
+- `fopen64`
+### ioctl
+Any file with `FS_IMMUTABLE_FL | FS_APPEND_FL` bits set is protected from their possible removal.
+
+Hooked functions for this scope are:
+- `ioctl`
+### accept
+A magic backdoor!
+
+Just connect to any socket (started after the library injection) with a specific source port (`ncat IP PORT -p SOURCE_IP`, default: `65535`) to see a magical shell spawn.
+
+Did you ask for security? It's password protected! (default pw: `SmirkFTW`)
+
+Hooked functions for this scope are:
+- `accept`
+- `accept4`
+
+### mount
+If source or destination are one of the magicfiles it just returns 'ENOENT' (-1), thus preventing some nice mount tricks!
+
+Hooked functions for this scope are:
+- `mount`
+
+### xstat
+If a stat'd file has the "magix prefix" (default: `.smirk`) just returns "ENOENT" (-1).
+
+Hooked functions for this scope are:
+- `xstat`
+- `xstat64`
+- `lxstat`
+- `lxstat64`
+
+
+## In any case...
+...We commented everything and you can easily understand what a function does just by reading the source.
 ```text
                     ____
                  _.' :  `._
